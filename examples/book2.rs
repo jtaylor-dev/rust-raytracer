@@ -6,7 +6,7 @@ use raytracer::{
     hittable::Scene,
     material::*,
     math::{Point3, Vec3},
-    primitives::Sphere,
+    primitives::{MovingSphere, Sphere},
     render::render_scene,
 };
 use std::sync::Arc;
@@ -27,6 +27,7 @@ fn main() {
     let fov: f64 = matches.value_of("fov").unwrap().parse().unwrap();
     let aperture: f64 = matches.value_of("aperture").unwrap().parse().unwrap();
     let focus_distance: f64 = matches.value_of("focusdist").unwrap().parse().unwrap();
+    let use_bvh = matches.is_present("bvh");
 
     // Parse filename
     let filename = matches.value_of("output").unwrap();
@@ -49,7 +50,7 @@ fn main() {
     );
 
     // Init scene
-    let scene = random_scene();
+    let scene = random_scene(use_bvh);
 
     println!(
         "Rendering scene to {}x{} image ({} pixels) with {} bounces/ray and {} samples/pixel",
@@ -59,6 +60,9 @@ fn main() {
         max_depth,
         samples_per_pixel,
     );
+    if use_bvh {
+        println!("BVH optimization = ON");
+    }
 
     // Render
     let image = render_scene(
@@ -79,18 +83,17 @@ fn main() {
     .unwrap();
 }
 
-fn random_scene() -> Scene {
-    let mut scene = Scene::new();
+fn random_scene(use_bvh: bool) -> Scene {
+    let mut scene_objects = Scene::new();
 
     let mat_ground: Arc<dyn Material> = Arc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5)));
-    scene.add(Sphere::new(
+    scene_objects.add(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         mat_ground.clone(),
     ));
 
     let mut rng = thread_rng();
-
     for a in -11..11 {
         for b in -11..11 {
             let choose_mat: f64 = rng.gen();
@@ -102,20 +105,28 @@ fn random_scene() -> Scene {
 
             if (center - Point3::new(4.0, 0.2, 0.0)).length() > 0.9 {
                 let material: Arc<dyn Material>;
-                if choose_mat < 0.8 {
+                if choose_mat < 0.6 {
                     // diffuse
                     let albedo = Vec3::random() * Vec3::random();
                     material = Arc::new(Lambertian::new(albedo));
+                    scene_objects.add(Sphere::new(center, 0.2, material));
+                } else if choose_mat < 0.8 {
+                    // moving diffuse sphere
+                    let albedo = Vec3::random() * Vec3::random();
+                    material = Arc::new(Lambertian::new(albedo));
+                    let center2 = center + Vec3::new(0.0, rng.gen_range(0.0, 0.5), 0.0);
+                    scene_objects.add(MovingSphere::new(center, center2, 0.2, 0.0, 1.0, material));
                 } else if choose_mat < 0.95 {
                     // metal
                     let albedo = Vec3::random_in_range(0.5, 1.0);
                     let fuzz: f64 = rng.gen_range(0.0, 0.5);
                     material = Arc::new(Metal::new(albedo, fuzz));
+                    scene_objects.add(Sphere::new(center, 0.2, material));
                 } else {
                     // glass
                     material = Arc::new(Dielectric::new(1.5));
+                    scene_objects.add(Sphere::new(center, 0.2, material));
                 }
-                scene.add(Sphere::new(center, 0.2, material));
             }
         }
     }
@@ -124,15 +135,15 @@ fn random_scene() -> Scene {
     let lambert: Arc<dyn Material> = Arc::new(Lambertian::new(Vec3::new(0.4, 0.2, 0.1)));
     let metal: Arc<dyn Material> = Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0));
 
-    scene.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, glass.clone()));
-    scene.add(Sphere::new(
+    scene_objects.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, glass.clone()));
+    scene_objects.add(Sphere::new(
         Point3::new(-4.0, 1.0, 0.0),
-        1.0,
+        0.75,
         lambert.clone(),
     ));
-    scene.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, metal.clone()));
+    scene_objects.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 0.75, metal.clone()));
 
-    scene
+    scene_objects
 }
 
 fn match_args() -> ArgMatches<'static> {
@@ -201,6 +212,11 @@ fn match_args() -> ArgMatches<'static> {
                 .takes_value(true)
                 .default_value("50")
                 .help("Sets max bounces (depth) for each raycast"),
+        )
+        .arg(
+            Arg::with_name("bvh")
+                .long("bvh")
+                .help("Use bounding volume hierarchy (BVH) optimizations"),
         )
         .arg(
             Arg::with_name("output")

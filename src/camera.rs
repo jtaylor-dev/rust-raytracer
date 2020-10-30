@@ -2,6 +2,7 @@
 
 #![allow(dead_code)]
 use crate::math::{Point3, Ray, Vec3};
+use rand::{thread_rng, Rng};
 
 pub struct Camera {
     origin: Point3,
@@ -12,6 +13,8 @@ pub struct Camera {
     v: Vec3,
     w: Vec3,
     lens_radius: f64,
+    time_0: f64, // shutter open
+    time_1: f64, // shutter close
 }
 
 impl Camera {
@@ -23,6 +26,8 @@ impl Camera {
         aspect_ratio: f64,
         aperture: f64,
         focus_dist: f64,
+        time_0: f64,
+        time_1: f64,
     ) -> Self {
         let theta = vfov.to_radians();
         let h = (theta / 2.0).tan();
@@ -49,6 +54,8 @@ impl Camera {
             v,
             w,
             lens_radius,
+            time_0,
+            time_1,
         }
     }
 
@@ -56,10 +63,11 @@ impl Camera {
     pub fn get_ray(&self, s: f64, t: f64) -> Ray {
         let rd = self.lens_radius * Vec3::random_in_unit_disk();
         let offset = self.u * rd.x() + self.v * rd.y();
-
+        let mut rng = thread_rng();
         Ray::new(
             self.origin + offset,
             self.lower_left_corner + s * self.horizontal + t * self.vertical - self.origin - offset,
+            rng.gen_range(self.time_0, self.time_1),
         )
     }
 }

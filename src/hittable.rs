@@ -5,7 +5,7 @@ use crate::math::{Point3, Ray, Vec3};
 use std::sync::Arc;
 
 /// Maintains a record of a ray intersection with a [`Hittable`] object.
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct HitRecord {
     pub point: Point3,
     pub normal: Vec3,
@@ -30,7 +30,7 @@ impl HitRecord {
         self.normal = if self.front_face {
             *outward_normal
         } else {
-            -*outward_normal
+            -(*outward_normal)
         };
     }
 }
@@ -39,10 +39,9 @@ impl HitRecord {
 pub trait Hittable: Sync + Send {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
 }
-
 /// Stores a list of hittable scene objects.
 pub struct HittableList {
-    objects: Vec<Box<dyn Hittable>>,
+    objects: Vec<Arc<dyn Hittable>>,
 }
 
 pub type Scene = HittableList;
@@ -55,11 +54,15 @@ impl HittableList {
     }
 
     pub fn add(&mut self, object: impl Hittable + 'static) {
-        self.objects.push(Box::new(object));
+        self.objects.push(Arc::new(object));
     }
 
     pub fn clear(&mut self) {
         self.objects.clear()
+    }
+
+    pub fn objects(&self) -> &Vec<Arc<dyn Hittable>> {
+        &self.objects
     }
 }
 

@@ -1,14 +1,19 @@
 use crate::math::{Point3, Sphere, Vec3};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Ray {
     origin: Point3,
     direction: Vec3,
+    time: f64,
 }
 
 impl Ray {
-    pub fn new(origin: Point3, direction: Vec3) -> Self {
-        Self { origin, direction }
+    pub fn new(origin: Point3, direction: Vec3, time: f64) -> Self {
+        Self {
+            origin,
+            direction,
+            time,
+        }
     }
 
     pub fn origin(&self) -> Point3 {
@@ -17,6 +22,10 @@ impl Ray {
 
     pub fn direction(&self) -> Vec3 {
         self.direction
+    }
+
+    pub fn time(&self) -> f64 {
+        self.time
     }
 
     /// Returns a `Point3` a distance `t` along the `Ray`.
@@ -36,15 +45,6 @@ impl Ray {
             -1.0
         } else {
             (-half_b - discriminant.sqrt()) / a
-        }
-    }
-}
-
-impl Default for Ray {
-    fn default() -> Self {
-        Self {
-            origin: Point3::default(),
-            direction: Vec3::default(),
         }
     }
 }

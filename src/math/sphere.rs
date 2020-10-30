@@ -1,6 +1,6 @@
 use crate::math::{Point3, Ray};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Default, Clone, Copy)]
 pub struct Sphere {
     center: Point3,
     radius: f64,
@@ -24,13 +24,5 @@ impl Sphere {
 
     pub fn radius(&self) -> f64 {
         self.radius
-    }
-}
-impl Default for Sphere {
-    fn default() -> Self {
-        Self {
-            center: Point3::default(),
-            radius: 1.0,
-        }
     }
 }
