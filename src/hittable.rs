@@ -1,7 +1,7 @@
 //! Scene-level abstractions for objects that can intersect with raycasts
 
 use crate::material::Material;
-use crate::math::{Point3, Ray, Vec3};
+use crate::math::{Aabb, Point3, Ray, Vec3};
 use std::sync::Arc;
 
 /// Maintains a record of a ray intersection with a [`Hittable`] object.
@@ -38,6 +38,7 @@ impl HitRecord {
 /// Scene trait for intersecting with rays.
 pub trait Hittable: Sync + Send {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<Aabb>;
 }
 /// Stores a list of hittable scene objects.
 pub struct HittableList {
@@ -79,5 +80,29 @@ impl Hittable for HittableList {
         }
 
         return hit;
+    }
+
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<Aabb> {
+        if self.objects().is_empty() {
+            return None;
+        }
+
+        let mut output_box = Aabb::default();
+        let mut first_box = true;
+
+        for object in self.objects.iter() {
+            if let Some(temp_box) = object.bounding_box(t0, t1) {
+                output_box = if first_box {
+                    temp_box
+                } else {
+                    Aabb::surrounding_box(&output_box, &temp_box)
+                };
+                first_box = false;
+            } else {
+                return None;
+            }
+        }
+
+        Some(output_box)
     }
 }

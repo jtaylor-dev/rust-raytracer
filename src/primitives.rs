@@ -1,22 +1,24 @@
 //! Types that implement [`Hittable`](crate::hittable::Hittable)
 
 use crate::material::Material;
-use crate::math::{self, Ray};
+use crate::math::Ray;
 use crate::{
     hittable::{HitRecord, Hittable},
-    math::{Point3, Vec3},
+    math::{Aabb, Point3, Vec3},
 };
 use std::sync::Arc;
 
 pub struct Sphere {
-    sphere: math::Sphere,
+    center: Point3,
+    radius: f64,
     material: Arc<dyn Material>,
 }
 
 impl Sphere {
     pub fn new(center: Point3, radius: f64, material: Arc<dyn Material>) -> Self {
         Self {
-            sphere: math::Sphere::new(center, radius),
+            center,
+            radius,
             material,
         }
     }
@@ -24,13 +26,10 @@ impl Sphere {
 
 impl Hittable for Sphere {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
-        let center = self.sphere.center();
-        let radius = self.sphere.radius();
-
-        let center_to_origin = ray.origin() - center;
+        let center_to_origin = ray.origin() - self.center;
         let a = ray.direction().length_squared();
         let half_b = center_to_origin.dot(&ray.direction());
-        let c = center_to_origin.length_squared() - radius * radius;
+        let c = center_to_origin.length_squared() - self.radius * self.radius;
         let discriminant = half_b * half_b - a * c;
 
         if discriminant > 0.0 {
@@ -41,7 +40,7 @@ impl Hittable for Sphere {
                 let mut hit_rec = HitRecord::new();
                 hit_rec.t = temp;
                 hit_rec.point = ray.at(hit_rec.t);
-                let outward_normal = (hit_rec.point - center) / radius;
+                let outward_normal = (hit_rec.point - self.center) / self.radius;
                 hit_rec.set_face_normal(ray, &outward_normal);
                 hit_rec.material = Some(self.material.clone());
                 return Some(hit_rec);
@@ -52,13 +51,21 @@ impl Hittable for Sphere {
                 let mut hit_rec = HitRecord::new();
                 hit_rec.t = temp;
                 hit_rec.point = ray.at(hit_rec.t);
-                let outward_normal = (hit_rec.point - center) / radius;
+                let outward_normal = (hit_rec.point - self.center) / self.radius;
                 hit_rec.set_face_normal(ray, &outward_normal);
                 hit_rec.material = Some(self.material.clone());
                 return Some(hit_rec);
             }
         }
         return None;
+    }
+
+    #[allow(unused_variables)]
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<Aabb> {
+        Some(Aabb::new(
+            self.center - Vec3::new(self.radius, self.radius, self.radius),
+            self.center + Vec3::new(self.radius, self.radius, self.radius),
+        ))
     }
 }
 
@@ -132,5 +139,19 @@ impl Hittable for MovingSphere {
             }
         }
         return None;
+    }
+
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<Aabb> {
+        let box_0 = Aabb::new(
+            self.center(t0) - Vec3::new(self.radius, self.radius, self.radius),
+            self.center(t0) + Vec3::new(self.radius, self.radius, self.radius),
+        );
+
+        let box_1 = Aabb::new(
+            self.center(t1) - Vec3::new(self.radius, self.radius, self.radius),
+            self.center(t1) + Vec3::new(self.radius, self.radius, self.radius),
+        );
+
+        Some(Aabb::surrounding_box(&box_0, &box_1))
     }
 }

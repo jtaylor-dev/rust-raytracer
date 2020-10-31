@@ -10,3 +10,6 @@ pub use ray::*;
 
 mod sphere;
 pub use sphere::*;
+
+mod aabb;
+pub use aabb::*;

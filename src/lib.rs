@@ -1,3 +1,4 @@
+pub mod bvh;
 pub mod camera;
 pub mod hittable;
 pub mod material;

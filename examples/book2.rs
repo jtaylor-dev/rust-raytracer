@@ -2,6 +2,7 @@ use clap::{App, Arg, ArgMatches};
 use image;
 use rand::{thread_rng, Rng};
 use raytracer::{
+    bvh::BvhNode,
     camera::Camera,
     hittable::Scene,
     material::*,
@@ -49,9 +50,6 @@ fn main() {
         1.0,
     );
 
-    // Init scene
-    let scene = random_scene(use_bvh);
-
     println!(
         "Rendering scene to {}x{} image ({} pixels) with {} bounces/ray and {} samples/pixel",
         image_width,
@@ -63,6 +61,9 @@ fn main() {
     if use_bvh {
         println!("BVH optimization = ON");
     }
+
+    // Init scene
+    let scene = random_scene(use_bvh);
 
     // Render
     let image = render_scene(
@@ -135,15 +136,32 @@ fn random_scene(use_bvh: bool) -> Scene {
     let lambert: Arc<dyn Material> = Arc::new(Lambertian::new(Vec3::new(0.4, 0.2, 0.1)));
     let metal: Arc<dyn Material> = Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0));
 
-    scene_objects.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, glass.clone()));
+    scene_objects.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.25, glass.clone()));
     scene_objects.add(Sphere::new(
-        Point3::new(-4.0, 1.0, 0.0),
-        0.75,
+        Point3::new(-4.0, 1.0, 3.0),
+        1.25,
         lambert.clone(),
     ));
-    scene_objects.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 0.75, metal.clone()));
+    scene_objects.add(Sphere::new(
+        Point3::new(-4.0, 1.0, -3.0),
+        1.25,
+        lambert.clone(),
+    ));
+    scene_objects.add(Sphere::new(
+        Point3::new(4.0, 1.0, -2.0),
+        1.25,
+        metal.clone(),
+    ));
 
-    scene_objects
+    if use_bvh {
+        let bvh = BvhNode::from_list(&scene_objects, 0.0, 1.0);
+        println!("Created root BvhNode: {}", bvh);
+        let mut scene = Scene::new();
+        scene.add(bvh);
+        scene
+    } else {
+        scene_objects
+    }
 }
 
 fn match_args() -> ArgMatches<'static> {
