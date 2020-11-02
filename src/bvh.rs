@@ -25,7 +25,7 @@ impl BvhNode {
         Self::new_impl(&mut src_objects.clone(), start, end, t0, t1)
     }
 
-    pub fn new_impl(
+    fn new_impl(
         objects: &mut [std::sync::Arc<dyn Hittable>],
         start: usize,
         end: usize,
