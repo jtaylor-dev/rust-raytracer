@@ -6,9 +6,10 @@ use raytracer::{
     camera::Camera,
     hittable::Scene,
     material::*,
-    math::{Point3, Vec3},
+    math::{Color, Point3, Vec3},
     primitives::{MovingSphere, Sphere},
     render::render_scene,
+    texture::*,
 };
 use std::sync::Arc;
 
@@ -87,7 +88,11 @@ fn main() {
 fn random_scene(use_bvh: bool) -> Scene {
     let mut scene_objects = Scene::new();
 
-    let mat_ground: Arc<dyn Material> = Arc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5)));
+    let checker_texture: Arc<dyn Texture> = Arc::new(CheckerPattern::from_colors(
+        Color::new(0.2, 0.3, 0.1),
+        Color::new(0.9, 0.9, 0.9),
+    ));
+    let mat_ground: Arc<dyn Material> = Arc::new(Lambertian::from(checker_texture));
     scene_objects.add(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
@@ -139,19 +144,15 @@ fn random_scene(use_bvh: bool) -> Scene {
     scene_objects.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.25, glass.clone()));
     scene_objects.add(Sphere::new(
         Point3::new(-4.0, 1.0, 3.0),
-        1.25,
+        1.0,
         lambert.clone(),
     ));
     scene_objects.add(Sphere::new(
         Point3::new(-4.0, 1.0, -3.0),
-        1.25,
+        1.0,
         lambert.clone(),
     ));
-    scene_objects.add(Sphere::new(
-        Point3::new(4.0, 1.0, -2.0),
-        1.25,
-        metal.clone(),
-    ));
+    scene_objects.add(Sphere::new(Point3::new(4.0, 1.0, -2.0), 1.0, metal.clone()));
 
     if use_bvh {
         let bvh = BvhNode::from_list(&scene_objects, 0.0, 1.0);

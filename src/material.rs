@@ -1,6 +1,8 @@
 //! Types for sampling light reflected from different surfaces
-
 #![allow(dead_code)]
+
+use crate::texture::{SolidColor, Texture};
+use std::sync::Arc;
 
 use crate::hittable::HitRecord;
 use crate::math::{Ray, Vec3};
@@ -19,12 +21,20 @@ pub trait Material: Sync + Send {
 }
 
 pub struct Lambertian {
-    albedo: Vec3,
+    albedo: Arc<dyn Texture>,
 }
 
 impl Lambertian {
     pub fn new(albedo: Vec3) -> Self {
-        Self { albedo }
+        Self {
+            albedo: Arc::new(SolidColor::from(albedo)),
+        }
+    }
+}
+
+impl From<Arc<dyn Texture>> for Lambertian {
+    fn from(texture: Arc<dyn Texture>) -> Self {
+        Self { albedo: texture }
     }
 }
 
@@ -39,7 +49,7 @@ impl Material for Lambertian {
     ) -> bool {
         let scatter_direction = hit_rec.normal + Vec3::random_unit_vector();
         *scattered_ray = Ray::new(hit_rec.point, scatter_direction, ray_in.time());
-        *attenuation = self.albedo;
+        *attenuation = self.albedo.sample(hit_rec.u, hit_rec.v, &hit_rec.point);
         return true;
     }
 }

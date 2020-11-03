@@ -5,3 +5,4 @@ pub mod material;
 pub mod math;
 pub mod primitives;
 pub mod render;
+pub mod texture;
