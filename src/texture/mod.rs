@@ -8,3 +8,6 @@ pub use checker::*;
 
 pub mod solidcolor;
 pub use solidcolor::*;
+
+pub mod perlin;
+pub use perlin::*;
