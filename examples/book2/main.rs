@@ -2,8 +2,7 @@ use clap::{App, Arg, ArgMatches};
 use image;
 use raytracer::{
     camera::Camera,
-    math::{Point3, Vec3},
-    scene::Scene,
+    math::{Color, Point3, Vec3},
 };
 
 mod scenes;
@@ -33,10 +32,28 @@ fn main() {
     // Parse scene
     let scene_num: i32 = matches.value_of("scene").unwrap().parse().unwrap();
 
-    // Camera
-    let look_from = Point3::new(13.0, 2.0, 3.0);
-    let look_at = Point3::new(0.0, 0.0, 0.0);
+    // Look directions for camera
+    let mut look_from = Point3::new(13.0, 2.0, 3.0);
+    let mut look_at = Point3::new(0.0, 0.0, 0.0);
     let v_up = Vec3::new(0.0, 1.0, 0.0);
+
+    // Pick scene
+    let scene_fn = match scene_num {
+        1 => random_scene,
+        2 => two_perlin_spheres,
+        3 => earthmap,
+        4 => {
+            look_from = Point3::new(26.0, 3.0, 6.0);
+            look_at = Point3::new(0.0, 2.0, 0.0);
+            |camera, use_bvh| lights_rgb(camera, Color::default(), use_bvh)
+        }
+        5 => {
+            look_from = Point3::new(278.0, 278.0, -800.0);
+            look_at = Point3::new(278.0, 278.0, 0.0001);
+            |camera, use_bvh| cornell_box(camera, Color::default(), use_bvh)
+        }
+        _ => panic!("Unrecognized scene number - expected in range [1,5]"),
+    };
 
     let camera = Camera::new(
         look_from,
@@ -62,15 +79,8 @@ fn main() {
         println!("BVH optimization = ON");
     }
 
-    // Init scene
-    let scene: Scene = (match scene_num {
-        1 => random_scene,
-        2 => two_perlin_spheres,
-        3 => earthmap,
-        _ => panic!("Unrecognized scene number - expected in range [1,2]"),
-    })(camera, use_bvh);
-
     // Render
+    let scene = scene_fn(camera, use_bvh);
     let image = scene.render(image_width, image_height, samples_per_pixel, max_depth);
     image::save_buffer(
         filename,
