@@ -1,10 +1,17 @@
 use raytracer::{
-    bvh::BvhNode, hittable::Scene, material::*, math::Point3, primitives::Sphere, texture::*,
+    bvh::BvhNode,
+    camera::Camera,
+    hittable::HittableList,
+    material::*,
+    math::{Color, Point3},
+    primitives::Sphere,
+    scene::Scene,
+    texture::*,
 };
 use std::sync::Arc;
 
-pub fn earthmap(use_bvh: bool) -> Scene {
-    let mut scene_objects = Scene::new();
+pub fn earthmap(camera: Camera, use_bvh: bool) -> Scene {
+    let mut scene_objects = HittableList::new();
 
     let earth: Arc<dyn Texture> = Arc::new(Image::new("assets/earthmap.jpg"));
 
@@ -16,13 +23,12 @@ pub fn earthmap(use_bvh: bool) -> Scene {
         mat_earth.clone(),
     ));
 
+    let background = Color::new(0.7, 0.8, 1.0);
     if use_bvh {
         let bvh = BvhNode::from_list(&scene_objects, 0.0, 1.0);
         println!("Created root BvhNode: {}", bvh);
-        let mut scene = Scene::new();
-        scene.add(bvh);
-        scene
+        Scene::new(bvh.into(), background, camera)
     } else {
-        scene_objects
+        Scene::new(scene_objects, background, camera)
     }
 }

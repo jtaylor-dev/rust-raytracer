@@ -2,9 +2,8 @@ use clap::{App, Arg, ArgMatches};
 use image;
 use raytracer::{
     camera::Camera,
-    hittable::Scene,
     math::{Point3, Vec3},
-    render::render_scene,
+    scene::Scene,
 };
 
 mod scenes;
@@ -69,17 +68,10 @@ fn main() {
         2 => two_perlin_spheres,
         3 => earthmap,
         _ => panic!("Unrecognized scene number - expected in range [1,2]"),
-    })(use_bvh);
+    })(camera, use_bvh);
 
     // Render
-    let image = render_scene(
-        &scene,
-        &camera,
-        image_width,
-        image_height,
-        samples_per_pixel,
-        max_depth,
-    );
+    let image = scene.render(image_width, image_height, samples_per_pixel, max_depth);
     image::save_buffer(
         filename,
         &image,
