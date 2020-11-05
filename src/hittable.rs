@@ -1,5 +1,6 @@
 //! Scene-level abstractions for objects that can intersect with raycasts
 
+use crate::bvh::BvhNode;
 use crate::material::Material;
 use crate::math::{Aabb, Point3, Ray, Vec3};
 use std::sync::Arc;
@@ -49,8 +50,6 @@ pub struct HittableList {
     objects: Vec<Arc<dyn Hittable>>,
 }
 
-pub type Scene = HittableList;
-
 impl HittableList {
     pub fn new() -> Self {
         Self {
@@ -68,6 +67,14 @@ impl HittableList {
 
     pub fn objects(&self) -> &Vec<Arc<dyn Hittable>> {
         &self.objects
+    }
+}
+
+impl From<BvhNode> for HittableList {
+    fn from(bvh: BvhNode) -> Self {
+        Self {
+            objects: vec![Arc::new(bvh)],
+        }
     }
 }
 

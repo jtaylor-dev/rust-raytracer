@@ -2,9 +2,8 @@ use clap::{App, Arg, ArgMatches};
 use image;
 use raytracer::{
     camera::Camera,
-    hittable::Scene,
     math::{Point3, Vec3},
-    render::render_scene,
+    scene::Scene,
 };
 
 mod scenes;
@@ -72,8 +71,7 @@ fn main() {
     })(use_bvh);
 
     // Render
-    let image = render_scene(
-        &scene,
+    let image = scene.render(
         &camera,
         image_width,
         image_height,

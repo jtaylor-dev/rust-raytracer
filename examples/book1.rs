@@ -3,11 +3,11 @@ use image;
 use rand::{thread_rng, Rng};
 use raytracer::{
     camera::Camera,
-    hittable::Scene,
+    hittable::HittableList,
     material::*,
-    math::{Point3, Vec3},
+    math::{Color, Point3, Vec3},
     primitives::Sphere,
-    render::render_scene,
+    scene::Scene,
 };
 use std::sync::Arc;
 
@@ -61,8 +61,7 @@ fn main() {
     );
 
     // Render
-    let image = render_scene(
-        &scene,
+    let image = scene.render(
         &camera,
         image_width,
         image_height,
@@ -80,10 +79,10 @@ fn main() {
 }
 
 fn random_scene() -> Scene {
-    let mut scene = Scene::new();
+    let mut scene_objects = HittableList::new();
 
     let mat_ground: Arc<dyn Material> = Arc::new(Lambertian::new(Vec3::new(0.5, 0.5, 0.5)));
-    scene.add(Sphere::new(
+    scene_objects.add(Sphere::new(
         Point3::new(0.0, -1000.0, 0.0),
         1000.0,
         mat_ground.clone(),
@@ -115,7 +114,7 @@ fn random_scene() -> Scene {
                     // glass
                     material = Arc::new(Dielectric::new(1.5));
                 }
-                scene.add(Sphere::new(center, 0.2, material));
+                scene_objects.add(Sphere::new(center, 0.2, material));
             }
         }
     }
@@ -124,15 +123,15 @@ fn random_scene() -> Scene {
     let lambert: Arc<dyn Material> = Arc::new(Lambertian::new(Vec3::new(0.4, 0.2, 0.1)));
     let metal: Arc<dyn Material> = Arc::new(Metal::new(Vec3::new(0.7, 0.6, 0.5), 0.0));
 
-    scene.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, glass.clone()));
-    scene.add(Sphere::new(
+    scene_objects.add(Sphere::new(Point3::new(0.0, 1.0, 0.0), 1.0, glass.clone()));
+    scene_objects.add(Sphere::new(
         Point3::new(-4.0, 1.0, 0.0),
         1.0,
         lambert.clone(),
     ));
-    scene.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, metal.clone()));
+    scene_objects.add(Sphere::new(Point3::new(4.0, 1.0, 0.0), 1.0, metal.clone()));
 
-    scene
+    Scene::new(scene_objects, Color::new(0.7, 0.8, 1.0))
 }
 
 fn match_args() -> ArgMatches<'static> {

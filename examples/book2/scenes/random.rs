@@ -1,16 +1,17 @@
 use rand::{thread_rng, Rng};
 use raytracer::{
     bvh::BvhNode,
-    hittable::Scene,
+    hittable::HittableList,
     material::*,
     math::{Color, Point3, Vec3},
     primitives::{MovingSphere, Sphere},
+    scene::Scene,
     texture::*,
 };
 use std::sync::Arc;
 
 pub fn random_scene(use_bvh: bool) -> Scene {
-    let mut scene_objects = Scene::new();
+    let mut scene_objects = HittableList::new();
 
     let checker_texture: Arc<dyn Texture> = Arc::new(CheckerPattern::from_colors(
         Color::new(0.2, 0.3, 0.1),
@@ -78,13 +79,12 @@ pub fn random_scene(use_bvh: bool) -> Scene {
     ));
     scene_objects.add(Sphere::new(Point3::new(4.0, 1.0, -2.0), 1.0, metal.clone()));
 
+    let background = Color::new(0.7, 0.8, 1.0);
     if use_bvh {
         let bvh = BvhNode::from_list(&scene_objects, 0.0, 1.0);
         println!("Created root BvhNode: {}", bvh);
-        let mut scene = Scene::new();
-        scene.add(bvh);
-        scene
+        Scene::new(bvh.into(), background)
     } else {
-        scene_objects
+        Scene::new(scene_objects, background)
     }
 }
