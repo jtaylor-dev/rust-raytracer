@@ -11,3 +11,6 @@ pub use solidcolor::*;
 
 pub mod perlin;
 pub use perlin::*;
+
+pub mod image;
+pub use self::image::*;

@@ -64,11 +64,12 @@ fn main() {
     }
 
     // Init scene
-    let scene: Scene = match scene_num {
-        1 => random_scene(use_bvh),
-        2 => two_perlin_spheres(use_bvh),
+    let scene: Scene = (match scene_num {
+        1 => random_scene,
+        2 => two_perlin_spheres,
+        3 => earthmap,
         _ => panic!("Unrecognized scene number - expected in range [1,2]"),
-    };
+    })(use_bvh);
 
     // Render
     let image = render_scene(
