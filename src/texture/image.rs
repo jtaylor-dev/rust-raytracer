@@ -26,7 +26,7 @@ impl Image {
 }
 
 impl Texture for Image {
-    fn sample(&self, u: f64, v: f64, p: &Point3) -> Color {
+    fn sample(&self, u: f64, v: f64, _p: &Point3) -> Color {
         let u = clamp(u, 0.0, 1.0);
         let v = 1.0 - clamp(v, 0.0, 1.0);
 
