@@ -1,5 +1,3 @@
-//! Types that implement [`Hittable`](crate::hittable::Hittable)
-
 use crate::material::Material;
 use crate::math::Ray;
 use crate::{
