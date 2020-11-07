@@ -22,10 +22,12 @@ pub trait Material: Sync + Send {
 
 mod dielectric;
 mod diffuse;
+mod isotropic;
 mod lambertian;
 mod metal;
 
 pub use dielectric::*;
 pub use diffuse::*;
+pub use isotropic::*;
 pub use lambertian::*;
 pub use metal::*;

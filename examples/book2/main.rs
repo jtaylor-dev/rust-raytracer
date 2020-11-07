@@ -52,6 +52,11 @@ fn main() {
             look_at = Point3::new(278.0, 278.0, 0.0001);
             |camera, use_bvh| cornell_box(camera, Color::default(), use_bvh)
         }
+        6 => {
+            look_from = Point3::new(278.0, 278.0, -800.0);
+            look_at = Point3::new(278.0, 278.0, 0.0001);
+            |camera, use_bvh| cornell_smoke(camera, Color::default(), use_bvh)
+        }
         _ => panic!("Unrecognized scene number - expected in range [1,5]"),
     };
 
