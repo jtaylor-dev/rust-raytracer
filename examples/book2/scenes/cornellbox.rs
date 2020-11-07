@@ -1,5 +1,10 @@
 use raytracer::{
-    bvh::BvhNode, camera::Camera, hittable::HittableList, material::*, math::Color, primitives::*,
+    bvh::BvhNode,
+    camera::Camera,
+    hittable::{Hittable, HittableList, RotateY, Translate},
+    material::*,
+    math::{Color, Point3, Vec3},
+    primitives::*,
     scene::*,
 };
 use std::sync::Arc;
@@ -51,6 +56,25 @@ pub fn cornell_box(camera: Camera, background: Color, use_bvh: bool) -> Scene {
         554.0,
         mat_light.clone(),
     ));
+
+    // boxes
+    let box0 = Arc::new(AaBox::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 330.0, 165.0),
+        mat_white.clone(),
+    ));
+    let box0: Arc<dyn Hittable> = Arc::new(RotateY::new(box0.clone(), 15.0));
+    let box0 = Translate::new(box0.clone(), Vec3::new(265.0, 0.0, 295.0));
+    scene_objects.add(box0);
+
+    let box1 = Arc::new(AaBox::new(
+        Point3::new(0.0, 0.0, 0.0),
+        Point3::new(165.0, 165.0, 165.0),
+        mat_white.clone(),
+    ));
+    let box1: Arc<dyn Hittable> = Arc::new(RotateY::new(box1.clone(), -18.0));
+    let box1 = Translate::new(box1.clone(), Vec3::new(130.0, 0.0, 65.0));
+    scene_objects.add(box1);
 
     if use_bvh {
         let bvh = BvhNode::from_list(&scene_objects, 0.0, 1.0);

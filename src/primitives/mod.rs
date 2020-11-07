@@ -1,7 +1,9 @@
 //! Scene object types that implement [`Hittable`](crate::hittable::Hittable)
 
-pub mod plane;
+mod aabox;
+mod plane;
 mod sphere;
 
+pub use aabox::*;
 pub use plane::*;
 pub use sphere::*;

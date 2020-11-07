@@ -117,3 +117,124 @@ impl Hittable for HittableList {
         Some(output_box)
     }
 }
+
+pub struct Translate {
+    hittable: Arc<dyn Hittable>,
+    offset: Vec3,
+}
+
+impl Translate {
+    pub fn new(hittable: Arc<dyn Hittable>, offset: Vec3) -> Self {
+        Self { hittable, offset }
+    }
+}
+
+impl Hittable for Translate {
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<Aabb> {
+        if let Some(aabb) = self.hittable.bounding_box(t0, t1) {
+            Some(Aabb::new(
+                aabb.min() + self.offset,
+                aabb.max() + self.offset,
+            ))
+        } else {
+            None
+        }
+    }
+
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+        let moved_ray = Ray::new(ray.origin() - self.offset, ray.direction(), ray.time());
+
+        if let Some(mut hit_rec) = self.hittable.hit(&moved_ray, t_min, t_max) {
+            hit_rec.point += self.offset;
+            let outward_normal = hit_rec.normal;
+            hit_rec.set_face_normal(&moved_ray, &outward_normal);
+            Some(hit_rec)
+        } else {
+            None
+        }
+    }
+}
+
+pub struct RotateY {
+    hittable: Arc<dyn Hittable>,
+    sin_theta: f64,
+    cos_theta: f64,
+    aabb: Option<Aabb>,
+}
+
+impl RotateY {
+    pub fn new(hittable: Arc<dyn Hittable>, angle: f64) -> Self {
+        let radians = angle.to_radians();
+        let sin_theta = radians.sin();
+        let cos_theta = radians.cos();
+        let aabb = hittable.bounding_box(0.0, 1.0).unwrap();
+
+        use std::f64::{INFINITY, NEG_INFINITY};
+        let mut min = Point3::new(INFINITY, INFINITY, INFINITY);
+        let mut max = Point3::new(NEG_INFINITY, NEG_INFINITY, NEG_INFINITY);
+
+        for i in 0..2 {
+            for j in 0..2 {
+                for k in 0..2 {
+                    let x = i as f64 * aabb.max().x() + (1.0 - i as f64) * aabb.min().x();
+                    let y = j as f64 * aabb.max().y() + (1.0 - j as f64) * aabb.min().y();
+                    let z = k as f64 * aabb.max().z() + (1.0 - k as f64) * aabb.min().z();
+
+                    let newx = cos_theta * x + sin_theta * z;
+                    let newz = -sin_theta * x + cos_theta * z;
+
+                    let tester = Vec3::new(newx, y, newz);
+
+                    for c in 0..3 {
+                        min[c] = min[c].min(tester[c]);
+                        max[c] = max[c].max(tester[c]);
+                    }
+                }
+            }
+        }
+
+        Self {
+            hittable,
+            cos_theta,
+            sin_theta,
+            aabb: Some(Aabb::new(min, max)),
+        }
+    }
+}
+
+impl Hittable for RotateY {
+    fn bounding_box(&self, _t0: f64, _t1: f64) -> Option<Aabb> {
+        self.aabb
+    }
+
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+        let mut origin = ray.origin();
+        let mut direction = ray.direction();
+
+        origin[0] = self.cos_theta * ray.origin()[0] - self.sin_theta * ray.origin()[2];
+        origin[2] = self.sin_theta * ray.origin()[0] + self.cos_theta * ray.origin()[2];
+
+        direction[0] = self.cos_theta * ray.direction()[0] - self.sin_theta * ray.direction()[2];
+        direction[2] = self.sin_theta * ray.direction()[0] + self.cos_theta * ray.direction()[2];
+
+        let rotated_ray = Ray::new(origin, direction, ray.time());
+
+        if let Some(mut hit_rec) = self.hittable.hit(&rotated_ray, t_min, t_max) {
+            let mut p = hit_rec.point;
+            let mut n = hit_rec.normal;
+
+            p[0] = self.cos_theta * hit_rec.point[0] + self.sin_theta * hit_rec.point[2];
+            p[2] = -self.sin_theta * hit_rec.point[0] + self.cos_theta * hit_rec.point[2];
+
+            n[0] = self.cos_theta * hit_rec.normal[0] + self.sin_theta * hit_rec.normal[2];
+            n[2] = -self.sin_theta * hit_rec.normal[0] + self.cos_theta * hit_rec.normal[2];
+
+            hit_rec.point = p;
+            hit_rec.set_face_normal(&rotated_ray, &n);
+
+            Some(hit_rec)
+        } else {
+            None
+        }
+    }
+}
