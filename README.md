@@ -18,5 +18,9 @@ Example driver programs are under `examples` and can be ran with `cargo run --re
 
 ## Release History
 
+- 0.2.0
+
+  - Book 2 features added, including examples using new features. Restructured modules.
+
 - 0.1.0
   - Library and example scene for book 1, [_Ray Tracing in One Weekend_](https://raytracing.github.io/books/RayTracingInOneWeekend.html), completed, including parallelization using [Rayon](https://crates.io/crates/rayon) and saving in multiple formats using [image](https://crates.io/crates/image).
