@@ -28,6 +28,11 @@ impl Vec3 {
         self.data[2]
     }
 
+    pub fn near_zero(&self) -> bool {
+        let s = 1.0e-8;
+        (self[0].abs() < s) && (self[1].abs() < s) && (self[2].abs() < s)
+    }
+
     pub fn length(&self) -> f64 {
         let length_squared: f64 = self.length_squared();
         length_squared.sqrt()
@@ -115,10 +120,7 @@ impl Vec3 {
     }
 
     pub fn random_unit_vector() -> Self {
-        let a: f64 = thread_rng().gen_range(0.0, 2.0 * std::f64::consts::PI);
-        let z: f64 = thread_rng().gen_range(-1.0, 1.0);
-        let r = (1.0 - z * z).sqrt();
-        Self::new(r * a.cos(), r * a.sin(), z)
+        Self::random_in_unit_sphere().unit()
     }
 }
 
