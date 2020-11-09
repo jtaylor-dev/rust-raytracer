@@ -97,18 +97,7 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
 
     let mut lights = HittableList::new();
 
-    lights.add(XzPlane::new(
-        213.0,
-        343.0,
-        227.0,
-        332.0,
-        554.0,
-        Some(mat_light.clone()),
-    ));
-    lights.add(Sphere::new(
-        Point3::new(190.0, 90.0, 190.0),
-        90.0,
-        Some(mat_light.clone()),
-    ));
+    lights.add(XzPlane::new(213.0, 343.0, 227.0, 332.0, 554.0, None));
+    lights.add(Sphere::new(Point3::new(190.0, 90.0, 190.0), 90.0, None));
     Scene::new(bvh.into(), Arc::new(lights), background, camera)
 }
