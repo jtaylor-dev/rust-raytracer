@@ -1,6 +1,5 @@
 use super::Material;
-use crate::hittable::HitRecord;
-use crate::math::{Color, Ray, Vec3};
+use crate::math::Color;
 use crate::texture::{SolidColor, Texture};
 use std::sync::Arc;
 
@@ -23,6 +22,7 @@ impl From<Arc<dyn Texture>> for Isotropic {
 }
 
 impl Material for Isotropic {
+    // TODO
     //fn scatter(
     //    &self,
     //    ray_in: &Ray,

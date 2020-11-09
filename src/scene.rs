@@ -4,7 +4,7 @@ use crate::{
     camera::Camera,
     hittable::{Hittable, HittableList},
     material::ScatterRecord,
-    math::{Color, Point3, Ray, Vec3},
+    math::{Color, Ray, Vec3},
     pdf::*,
 };
 use indicatif::ProgressBar;

@@ -1,6 +1,6 @@
 use super::{Material, ScatterRecord};
 use crate::hittable::HitRecord;
-use crate::math::{Onb, Ray, Vec3};
+use crate::math::{Ray, Vec3};
 use crate::pdf::CosinePdf;
 use crate::texture::{SolidColor, Texture};
 use std::sync::Arc;

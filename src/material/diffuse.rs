@@ -1,6 +1,6 @@
 use super::Material;
 use crate::hittable::HitRecord;
-use crate::math::{Color, Point3, Ray, Vec3};
+use crate::math::{Color, Point3, Ray};
 use crate::texture::{SolidColor, Texture};
 use std::sync::Arc;
 
@@ -23,7 +23,7 @@ impl From<Arc<dyn Texture>> for DiffuseLight {
 }
 
 impl Material for DiffuseLight {
-    fn emitted(&self, ray: &Ray, hit_rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
+    fn emitted(&self, _ray: &Ray, hit_rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
         if !hit_rec.front_face {
             Color::default()
         } else {
