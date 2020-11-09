@@ -50,7 +50,7 @@ impl Hittable for XyPlane {
             return None;
         }
 
-        let mut hit_rec = HitRecord::new();
+        let mut hit_rec = HitRecord::default();
 
         hit_rec.u = (x - self.x0) / (self.x1 - self.x0);
         hit_rec.v = (y - self.y0) / (self.y1 - self.y0);
@@ -118,7 +118,7 @@ impl Hittable for XzPlane {
             return None;
         }
 
-        let mut hit_rec = HitRecord::new();
+        let mut hit_rec = HitRecord::default();
 
         hit_rec.u = (x - self.x0) / (self.x1 - self.x0);
         hit_rec.v = (z - self.z0) / (self.z1 - self.z0);
@@ -208,7 +208,7 @@ impl Hittable for YzPlane {
             return None;
         }
 
-        let mut hit_rec = HitRecord::new();
+        let mut hit_rec = HitRecord::default();
 
         hit_rec.u = (y - self.y0) / (self.y1 - self.y0);
         hit_rec.v = (z - self.z0) / (self.z1 - self.z0);

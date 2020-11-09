@@ -7,7 +7,7 @@ use rand::{thread_rng, Rng};
 use std::sync::Arc;
 
 /// Maintains a record of a ray intersection with a [`Hittable`] object.
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct HitRecord {
     pub point: Point3,
     pub normal: Vec3,
@@ -19,7 +19,18 @@ pub struct HitRecord {
 }
 
 impl HitRecord {
-    pub fn new() -> Self {
+    pub fn set_face_normal(&mut self, ray: &Ray, outward_normal: &Vec3) {
+        self.front_face = ray.direction().dot(outward_normal) < 0.0;
+        self.normal = if self.front_face {
+            *outward_normal
+        } else {
+            -(*outward_normal)
+        };
+    }
+}
+
+impl Default for HitRecord {
+    fn default() -> Self {
         Self {
             point: Point3::default(),
             normal: Vec3::default(),
@@ -29,15 +40,6 @@ impl HitRecord {
             front_face: false,
             material: None,
         }
-    }
-
-    pub fn set_face_normal(&mut self, ray: &Ray, outward_normal: &Vec3) {
-        self.front_face = ray.direction().dot(outward_normal) < 0.0;
-        self.normal = if self.front_face {
-            *outward_normal
-        } else {
-            -(*outward_normal)
-        };
     }
 }
 
