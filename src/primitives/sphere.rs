@@ -2,7 +2,7 @@ use crate::material::Material;
 use crate::math::Ray;
 use crate::{
     hittable::{HitRecord, Hittable},
-    math::{Aabb, Point3, Vec3},
+    math::{Aabb, Onb, Point3, Vec3},
 };
 use std::sync::Arc;
 
@@ -82,6 +82,24 @@ impl Hittable for Sphere {
             self.center - Vec3::new(self.radius, self.radius, self.radius),
             self.center + Vec3::new(self.radius, self.radius, self.radius),
         ))
+    }
+
+    fn pdf_value(&self, o: &Point3, v: &Vec3) -> f64 {
+        if let Some(_) = self.hit(&Ray::new(*o, *v, 0.0), 0.001, std::f64::INFINITY) {
+            let cos_theta_max =
+                (1.0 - self.radius * self.radius / (self.center - *o).length_squared()).sqrt();
+            let solid_angle = 2.0 * std::f64::consts::PI * (1.0 - cos_theta_max);
+
+            1.0 / solid_angle
+        } else {
+            0.0
+        }
+    }
+    fn random(&self, o: &Vec3) -> Vec3 {
+        let direction: Vec3 = self.center - *o;
+        let dist_squared = direction.length_squared();
+        let uvw = Onb::new(&direction);
+        uvw.local_vec(&Vec3::random_to_sphere(self.radius, dist_squared))
     }
 }
 

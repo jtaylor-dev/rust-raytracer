@@ -23,15 +23,16 @@ impl From<Arc<dyn Texture>> for Isotropic {
 }
 
 impl Material for Isotropic {
-    fn scatter(
-        &self,
-        ray_in: &Ray,
-        hit_rec: &HitRecord,
-        attenuation: &mut Vec3,
-        scattered_ray: &mut Ray,
-    ) -> bool {
-        *scattered_ray = Ray::new(hit_rec.point, Vec3::random_in_unit_sphere(), ray_in.time());
-        *attenuation = self.albedo.sample(hit_rec.u, hit_rec.v, &hit_rec.point);
-        return true;
-    }
+    //fn scatter(
+    //    &self,
+    //    ray_in: &Ray,
+    //    hit_rec: &HitRecord,
+    //    albedo: &mut Vec3,
+    //    scattered_ray: &mut Ray,
+    //    pdf: &mut f64,
+    //) -> bool {
+    //    *scattered_ray = Ray::new(hit_rec.point, Vec3::random_in_unit_sphere(), ray_in.time());
+    //    *albedo = self.albedo.sample(hit_rec.u, hit_rec.v, &hit_rec.point);
+    //    return true;
+    //}
 }

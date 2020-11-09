@@ -1,6 +1,7 @@
-use super::Material;
+use super::{Material, ScatterRecord};
 use crate::hittable::HitRecord;
-use crate::math::{Ray, Vec3};
+use crate::math::{Onb, Ray, Vec3};
+use crate::pdf::CosinePdf;
 use crate::texture::{SolidColor, Texture};
 use std::sync::Arc;
 
@@ -24,16 +25,18 @@ impl From<Arc<dyn Texture>> for Lambertian {
 
 #[allow(unused_variables)]
 impl Material for Lambertian {
-    fn scatter(
-        &self,
-        ray_in: &Ray,
-        hit_rec: &HitRecord,
-        attenuation: &mut Vec3,
-        scattered_ray: &mut Ray,
-    ) -> bool {
-        let scatter_direction = hit_rec.normal + Vec3::random_unit_vector();
-        *scattered_ray = Ray::new(hit_rec.point, scatter_direction, ray_in.time());
-        *attenuation = self.albedo.sample(hit_rec.u, hit_rec.v, &hit_rec.point);
+    fn scatter(&self, ray_in: &Ray, hit_rec: &HitRecord, scatter: &mut ScatterRecord) -> bool {
+        scatter.attenuation = self.albedo.sample(hit_rec.u, hit_rec.v, &hit_rec.point);
+        scatter.pdf = Some(Arc::new(CosinePdf::new(&hit_rec.normal)));
         return true;
+    }
+
+    fn scattering_pdf(&self, ray_in: &Ray, hit_rec: &HitRecord, scattered_ray: &Ray) -> f64 {
+        let cosine = hit_rec.normal.dot(&scattered_ray.direction().unit());
+        if cosine < 0.0 {
+            0.0
+        } else {
+            cosine / std::f64::consts::PI
+        }
     }
 }

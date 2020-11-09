@@ -1,4 +1,4 @@
-use super::Material;
+use super::{Material, ScatterRecord};
 use crate::hittable::HitRecord;
 use crate::math::{Ray, Vec3};
 
@@ -17,21 +17,15 @@ impl Metal {
 }
 
 impl Material for Metal {
-    fn scatter(
-        &self,
-        ray_in: &Ray,
-        hit_rec: &HitRecord,
-        attenuation: &mut Vec3,
-        scattered_ray: &mut Ray,
-    ) -> bool {
+    fn scatter(&self, ray_in: &Ray, hit_rec: &HitRecord, scatter: &mut ScatterRecord) -> bool {
         let reflected = ray_in.direction().unit().reflect(&hit_rec.normal);
-        *scattered_ray = Ray::new(
+        scatter.specular_ray = Some(Ray::new(
             hit_rec.point,
             reflected + self.fuzz * Vec3::random_in_unit_sphere(),
             ray_in.time(),
-        );
-        *attenuation = self.albedo;
-
-        scattered_ray.direction().dot(&hit_rec.normal) > 0.0
+        ));
+        scatter.attenuation = self.albedo;
+        scatter.pdf = None;
+        return true;
     }
 }

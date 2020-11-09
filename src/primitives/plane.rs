@@ -4,8 +4,8 @@ use crate::{
     hittable::{HitRecord, Hittable},
     math::{Aabb, Point3, Vec3},
 };
+use rand::{thread_rng, Rng};
 use std::sync::Arc;
-
 pub struct XyPlane {
     x0: f64,
     x1: f64,
@@ -125,6 +125,28 @@ impl Hittable for XzPlane {
             Point3::new(self.x0, self.k - offset, self.z0),
             Point3::new(self.x1, self.k + offset, self.z1),
         ))
+    }
+
+    fn pdf_value(&self, origin: &Point3, v: &Vec3) -> f64 {
+        if let Some(hit_rec) = self.hit(&Ray::new(*origin, *v, 0.0), 0.001, std::f64::INFINITY) {
+            let area = (self.x1 - self.x0) * (self.z1 - self.z0);
+            let dist_squared = hit_rec.t * hit_rec.t * v.length_squared();
+            let cosine = v.dot(&hit_rec.normal).abs() / v.length();
+
+            dist_squared / (cosine * area)
+        } else {
+            0.0
+        }
+    }
+
+    fn random(&self, origin: &Vec3) -> Vec3 {
+        let mut rng = thread_rng();
+        let random_point = Point3::new(
+            rng.gen_range(self.x0, self.x1),
+            self.k,
+            rng.gen_range(self.z0, self.z1),
+        );
+        random_point - *origin
     }
 }
 

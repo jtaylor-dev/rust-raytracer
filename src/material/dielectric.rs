@@ -1,4 +1,4 @@
-use super::Material;
+use super::{Material, ScatterRecord};
 use crate::hittable::HitRecord;
 use crate::math::{Ray, Vec3};
 use rand::{thread_rng, Rng};
@@ -19,14 +19,9 @@ impl Dielectric {
 }
 
 impl Material for Dielectric {
-    fn scatter(
-        &self,
-        ray_in: &Ray,
-        hit_rec: &HitRecord,
-        attenuation: &mut Vec3,
-        scattered_ray: &mut Ray,
-    ) -> bool {
-        *attenuation = Vec3::new(1.0, 1.0, 1.0);
+    fn scatter(&self, ray_in: &Ray, hit_rec: &HitRecord, scatter: &mut ScatterRecord) -> bool {
+        scatter.pdf = None;
+        scatter.attenuation = Vec3::new(1.0, 1.0, 1.0);
         let refraction_ratio = if hit_rec.front_face {
             1.0 / self.ior
         } else {
@@ -46,7 +41,7 @@ impl Material for Dielectric {
             direction = unit_direction.refract(&hit_rec.normal, refraction_ratio);
         }
 
-        *scattered_ray = Ray::new(hit_rec.point, direction, ray_in.time());
+        scatter.specular_ray = Some(Ray::new(hit_rec.point, direction, ray_in.time()));
         return true;
     }
 }

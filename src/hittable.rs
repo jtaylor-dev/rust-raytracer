@@ -3,6 +3,7 @@
 use crate::bvh::BvhNode;
 use crate::material::Material;
 use crate::math::{Aabb, Point3, Ray, Vec3};
+use rand::{thread_rng, Rng};
 use std::sync::Arc;
 
 /// Maintains a record of a ray intersection with a [`Hittable`] object.
@@ -44,6 +45,14 @@ impl HitRecord {
 pub trait Hittable: Sync + Send {
     fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord>;
     fn bounding_box(&self, t0: f64, t1: f64) -> Option<Aabb>;
+
+    fn pdf_value(&self, o: &Point3, v: &Vec3) -> f64 {
+        0.0
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        Vec3::new(1.0, 0.0, 0.0)
+    }
 }
 /// Stores a list of hittable scene objects.
 pub struct HittableList {
@@ -115,6 +124,22 @@ impl Hittable for HittableList {
         }
 
         Some(output_box)
+    }
+
+    fn pdf_value(&self, o: &Point3, v: &Vec3) -> f64 {
+        let weight = 1.0 / self.objects.len() as f64;
+        let mut sum = 0.0;
+
+        for object in self.objects.iter() {
+            sum += weight * object.pdf_value(o, v);
+        }
+
+        sum
+    }
+
+    fn random(&self, o: &Vec3) -> Vec3 {
+        let size = self.objects.len();
+        self.objects[thread_rng().gen_range(0, size)].random(o)
     }
 }
 
@@ -236,5 +261,29 @@ impl Hittable for RotateY {
         } else {
             None
         }
+    }
+}
+
+pub struct FlipFace {
+    hittable: Arc<dyn Hittable>,
+}
+
+impl FlipFace {
+    pub fn new(hittable: Arc<dyn Hittable>) -> Self {
+        Self { hittable }
+    }
+}
+
+impl Hittable for FlipFace {
+    fn hit(&self, ray: &Ray, t_min: f64, t_max: f64) -> Option<HitRecord> {
+        if let Some(mut hit_rec) = self.hittable.hit(ray, t_min, t_max) {
+            hit_rec.front_face = !hit_rec.front_face;
+            Some(hit_rec)
+        } else {
+            None
+        }
+    }
+    fn bounding_box(&self, t0: f64, t1: f64) -> Option<Aabb> {
+        self.hittable.bounding_box(t0, t1)
     }
 }

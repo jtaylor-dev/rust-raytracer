@@ -122,6 +122,32 @@ impl Vec3 {
     pub fn random_unit_vector() -> Self {
         Self::random_in_unit_sphere().unit()
     }
+
+    pub fn random_cosine_direction() -> Self {
+        let mut rng = thread_rng();
+        let r1: f64 = rng.gen();
+        let r2: f64 = rng.gen();
+        let z = (1.0 - r2).sqrt();
+
+        let phi = 2.0 * std::f64::consts::PI * r1;
+        let x = phi.cos() * r2.sqrt();
+        let y = phi.sin() * r2.sqrt();
+
+        Vec3::new(x, y, z)
+    }
+
+    pub fn random_to_sphere(radius: f64, dist_squared: f64) -> Self {
+        let mut rng = thread_rng();
+        let r1: f64 = rng.gen();
+        let r2: f64 = rng.gen();
+        let z = 1.0 + r2 * ((1.0 - radius * radius / dist_squared).sqrt() - 1.0);
+
+        let phi = 2.0 * std::f64::consts::PI * r1;
+        let x = phi.cos() * (1.0 - z * z).sqrt();
+        let y = phi.sin() * (1.0 - z * z).sqrt();
+
+        Vec3::new(x, y, z)
+    }
 }
 
 impl Default for Vec3 {

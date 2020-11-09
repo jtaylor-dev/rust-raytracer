@@ -23,18 +23,11 @@ impl From<Arc<dyn Texture>> for DiffuseLight {
 }
 
 impl Material for DiffuseLight {
-    #[allow(unused_variables)]
-    fn scatter(
-        &self,
-        ray_in: &Ray,
-        hit_rec: &HitRecord,
-        attenuation: &mut Vec3,
-        scattered_ray: &mut Ray,
-    ) -> bool {
-        false
-    }
-
-    fn emitted(&self, u: f64, v: f64, p: &Point3) -> Color {
-        self.emit.sample(u, v, p)
+    fn emitted(&self, ray: &Ray, hit_rec: &HitRecord, u: f64, v: f64, p: &Point3) -> Color {
+        if !hit_rec.front_face {
+            Color::default()
+        } else {
+            self.emit.sample(u, v, p)
+        }
     }
 }

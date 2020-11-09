@@ -3,24 +3,34 @@
 use crate::{
     camera::Camera,
     hittable::{Hittable, HittableList},
-    math::{Color, Ray, Vec3},
+    material::ScatterRecord,
+    math::{Color, Point3, Ray, Vec3},
+    pdf::*,
 };
 use indicatif::ProgressBar;
 use num::clamp;
 use rand::{thread_rng, Rng};
 use rayon::prelude::*;
+use std::sync::Arc;
 
 /// Stores a HittableList and extra scene data (like background)
 pub struct Scene {
     hittables: HittableList,
+    lights: Arc<dyn Hittable>,
     background: Color,
     camera: Camera,
 }
 
 impl Scene {
-    pub fn new(hittables: HittableList, background: Color, camera: Camera) -> Self {
+    pub fn new(
+        hittables: HittableList,
+        lights: Arc<dyn Hittable>,
+        background: Color,
+        camera: Camera,
+    ) -> Self {
         Self {
             hittables,
+            lights,
             background,
             camera,
         }
@@ -57,6 +67,23 @@ impl Scene {
                         }
                         sample_acc /= samples as i32;
 
+                        // replace NaNs with zero
+                        let r = sample_acc.x();
+                        let g = sample_acc.y();
+                        let b = sample_acc.z();
+
+                        if r != r {
+                            sample_acc[0] = 0.0;
+                        }
+
+                        if g != g {
+                            sample_acc[1] = 0.0;
+                        }
+
+                        if b != b {
+                            sample_acc[2] = 0.0;
+                        }
+
                         // gamma correct
                         let r = (255.0 * clamp(sample_acc[0].sqrt(), 0., 0.999)) as u8;
                         let g = (255.0 * clamp(sample_acc[1].sqrt(), 0., 0.999)) as u8;
@@ -80,16 +107,33 @@ fn ray_color(ray: Ray, scene: &Scene, depth: u64) -> Vec3 {
     }
 
     if let Some(hit_rec) = scene.hittables.hit(&ray, 0.001, f64::INFINITY) {
-        let mut scattered: Ray = Ray::default();
-        let mut attenuation: Vec3 = Vec3::default();
         if let Some(ref material) = hit_rec.material {
-            let emitted = material.emitted(hit_rec.u, hit_rec.v, &hit_rec.point);
-            if !material.scatter(&ray, &hit_rec, &mut attenuation, &mut scattered) {
-                // no scatter
+            let mut scatter_rec = ScatterRecord::new();
+            let emitted = material.emitted(&ray, &hit_rec, hit_rec.u, hit_rec.v, &hit_rec.point);
+
+            if !material.scatter(&ray, &hit_rec, &mut scatter_rec) {
                 return emitted;
             }
 
-            return emitted + attenuation * ray_color(scattered, scene, depth - 1);
+            if let Some(specular_ray) = scatter_rec.specular_ray {
+                return scatter_rec.attenuation * ray_color(specular_ray, scene, depth - 1);
+            }
+
+            let mixture_pdf: MixturePdf;
+            {
+                let light_pdf = HittablePdf::new(scene.lights.clone(), hit_rec.point);
+                mixture_pdf =
+                    MixturePdf::new(Arc::new(light_pdf), scatter_rec.pdf.unwrap().clone());
+            }
+
+            let scattered = Ray::new(hit_rec.point, mixture_pdf.generate(), ray.time());
+            let pdf_val = mixture_pdf.value(&scattered.direction());
+
+            return emitted
+                + scatter_rec.attenuation
+                    * material.scattering_pdf(&ray, &hit_rec, &scattered)
+                    * ray_color(scattered, scene, depth - 1)
+                    / pdf_val;
         }
 
         // no material - use red to stand out

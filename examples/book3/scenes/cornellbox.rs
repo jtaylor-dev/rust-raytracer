@@ -1,7 +1,7 @@
 use raytracer::{
     bvh::BvhNode,
     camera::Camera,
-    hittable::{Hittable, HittableList, RotateY, Translate},
+    hittable::*,
     material::*,
     math::{Color, Point3, Vec3},
     primitives::*,
@@ -48,7 +48,7 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
     ));
 
     // top light
-    scene_objects.add(XzPlane::new(
+    let light_plane: Arc<dyn Hittable> = Arc::new(XzPlane::new(
         213.0,
         343.0,
         227.0,
@@ -56,8 +56,11 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
         554.0,
         mat_light.clone(),
     ));
+    let flipped = FlipFace::new(light_plane.clone());
+    scene_objects.add(flipped);
 
     // boxes
+    //let mat_metal: Arc<dyn Material> = Arc::new(Metal::new(Color::new(0.8, 0.85, 0.88), 0.0));
     let box0 = Arc::new(AaBox::new(
         Point3::new(0.0, 0.0, 0.0),
         Point3::new(165.0, 330.0, 165.0),
@@ -67,16 +70,31 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
     let box0 = Translate::new(box0.clone(), Vec3::new(265.0, 0.0, 295.0));
     scene_objects.add(box0);
 
-    let box1 = Arc::new(AaBox::new(
-        Point3::new(0.0, 0.0, 0.0),
-        Point3::new(165.0, 165.0, 165.0),
-        mat_white.clone(),
+    // glass sphere
+    let mat_glass: Arc<dyn Material> = Arc::new(Dielectric::new(1.5));
+    scene_objects.add(Sphere::new(
+        Point3::new(190.0, 90.0, 190.0),
+        90.0,
+        mat_glass.clone(),
     ));
-    let box1: Arc<dyn Hittable> = Arc::new(RotateY::new(box1.clone(), -18.0));
-    let box1 = Translate::new(box1.clone(), Vec3::new(130.0, 0.0, 65.0));
-    scene_objects.add(box1);
 
     let bvh = BvhNode::from_list(&scene_objects, 0.0, 1.0);
     println!("Created root BvhNode: {}", bvh);
-    Scene::new(bvh.into(), background, camera)
+
+    let mut lights = HittableList::new();
+
+    lights.add(XzPlane::new(
+        213.0,
+        343.0,
+        227.0,
+        332.0,
+        554.0,
+        mat_light.clone(),
+    ));
+    lights.add(Sphere::new(
+        Point3::new(190.0, 90.0, 190.0),
+        90.0,
+        mat_light.clone(),
+    ));
+    Scene::new(bvh.into(), Arc::new(lights), background, camera)
 }

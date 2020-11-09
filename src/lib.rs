@@ -3,6 +3,7 @@ pub mod camera;
 pub mod hittable;
 pub mod material;
 pub mod math;
+pub mod pdf;
 pub mod primitives;
 pub mod scene;
 pub mod texture;
