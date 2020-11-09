@@ -12,11 +12,18 @@ pub struct XyPlane {
     y0: f64,
     y1: f64,
     k: f64,
-    material: Arc<dyn Material>,
+    material: Option<Arc<dyn Material>>,
 }
 
 impl XyPlane {
-    pub fn new(x0: f64, x1: f64, y0: f64, y1: f64, k: f64, material: Arc<dyn Material>) -> Self {
+    pub fn new(
+        x0: f64,
+        x1: f64,
+        y0: f64,
+        y1: f64,
+        k: f64,
+        material: Option<Arc<dyn Material>>,
+    ) -> Self {
         Self {
             x0,
             x1,
@@ -52,7 +59,7 @@ impl Hittable for XyPlane {
         let outward_normal = Vec3::new(0.0, 0.0, 1.0);
         hit_rec.set_face_normal(ray, &outward_normal);
 
-        hit_rec.material = Some(self.material.clone());
+        hit_rec.material = self.material.clone();
         hit_rec.point = ray.at(t);
 
         Some(hit_rec)
@@ -73,11 +80,18 @@ pub struct XzPlane {
     z0: f64,
     z1: f64,
     k: f64,
-    material: Arc<dyn Material>,
+    material: Option<Arc<dyn Material>>,
 }
 
 impl XzPlane {
-    pub fn new(x0: f64, x1: f64, z0: f64, z1: f64, k: f64, material: Arc<dyn Material>) -> Self {
+    pub fn new(
+        x0: f64,
+        x1: f64,
+        z0: f64,
+        z1: f64,
+        k: f64,
+        material: Option<Arc<dyn Material>>,
+    ) -> Self {
         Self {
             x0,
             x1,
@@ -113,7 +127,7 @@ impl Hittable for XzPlane {
         let outward_normal = Vec3::new(0.0, 1.0, 0.0);
         hit_rec.set_face_normal(ray, &outward_normal);
 
-        hit_rec.material = Some(self.material.clone());
+        hit_rec.material = self.material.clone();
         hit_rec.point = ray.at(t);
 
         Some(hit_rec)
@@ -156,11 +170,18 @@ pub struct YzPlane {
     y0: f64,
     y1: f64,
     k: f64,
-    material: Arc<dyn Material>,
+    material: Option<Arc<dyn Material>>,
 }
 
 impl YzPlane {
-    pub fn new(y0: f64, y1: f64, z0: f64, z1: f64, k: f64, material: Arc<dyn Material>) -> Self {
+    pub fn new(
+        y0: f64,
+        y1: f64,
+        z0: f64,
+        z1: f64,
+        k: f64,
+        material: Option<Arc<dyn Material>>,
+    ) -> Self {
         Self {
             y0,
             y1,
@@ -196,7 +217,7 @@ impl Hittable for YzPlane {
         let outward_normal = Vec3::new(1.0, 0.0, 0.0);
         hit_rec.set_face_normal(ray, &outward_normal);
 
-        hit_rec.material = Some(self.material.clone());
+        hit_rec.material = self.material.clone();
         hit_rec.point = ray.at(t);
 
         Some(hit_rec)

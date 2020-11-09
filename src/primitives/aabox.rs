@@ -11,7 +11,7 @@ pub struct AaBox {
 }
 
 impl AaBox {
-    pub fn new(min: Point3, max: Point3, material: Arc<dyn Material>) -> Self {
+    pub fn new(min: Point3, max: Point3, material: Option<Arc<dyn Material>>) -> Self {
         let mut sides = HittableList::new();
 
         sides.add(XyPlane::new(

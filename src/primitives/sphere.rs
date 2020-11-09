@@ -9,11 +9,11 @@ use std::sync::Arc;
 pub struct Sphere {
     center: Point3,
     radius: f64,
-    material: Arc<dyn Material>,
+    material: Option<Arc<dyn Material>>,
 }
 
 impl Sphere {
-    pub fn new(center: Point3, radius: f64, material: Arc<dyn Material>) -> Self {
+    pub fn new(center: Point3, radius: f64, material: Option<Arc<dyn Material>>) -> Self {
         Self {
             center,
             radius,
@@ -67,7 +67,7 @@ impl Hittable for Sphere {
             point: hit_p,
             normal: Vec3::default(),
             front_face: false,
-            material: Some(self.material.clone()),
+            material: self.material.clone(),
             u,
             v,
         };
@@ -109,7 +109,7 @@ pub struct MovingSphere {
     center_1: Point3,
     time_1: f64,
     radius: f64,
-    material: Arc<dyn Material>,
+    material: Option<Arc<dyn Material>>,
 }
 
 impl MovingSphere {
@@ -119,7 +119,7 @@ impl MovingSphere {
         radius: f64,
         time_0: f64,
         time_1: f64,
-        material: Arc<dyn Material>,
+        material: Option<Arc<dyn Material>>,
     ) -> Self {
         Self {
             center_0,
@@ -166,7 +166,7 @@ impl Hittable for MovingSphere {
             point: hit_p,
             normal: Vec3::default(),
             front_face: false,
-            material: Some(self.material.clone()),
+            material: self.material.clone(),
             u,
             v,
         };

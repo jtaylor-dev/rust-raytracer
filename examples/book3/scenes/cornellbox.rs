@@ -24,18 +24,32 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
         0.0,
         555.0,
         555.0,
-        mat_green.clone(),
+        Some(mat_green.clone()),
     ));
-    scene_objects.add(YzPlane::new(0.0, 555.0, 0.0, 555.0, 0.0, mat_red.clone()));
+    scene_objects.add(YzPlane::new(
+        0.0,
+        555.0,
+        0.0,
+        555.0,
+        0.0,
+        Some(mat_red.clone()),
+    ));
 
-    scene_objects.add(XzPlane::new(0.0, 555.0, 0.0, 555.0, 0.0, mat_white.clone()));
+    scene_objects.add(XzPlane::new(
+        0.0,
+        555.0,
+        0.0,
+        555.0,
+        0.0,
+        Some(mat_white.clone()),
+    ));
     scene_objects.add(XzPlane::new(
         0.0,
         555.0,
         0.0,
         555.0,
         555.0,
-        mat_white.clone(),
+        Some(mat_white.clone()),
     ));
 
     scene_objects.add(XyPlane::new(
@@ -44,7 +58,7 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
         0.0,
         555.0,
         555.0,
-        mat_white.clone(),
+        Some(mat_white.clone()),
     ));
 
     // top light
@@ -54,7 +68,7 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
         227.0,
         332.0,
         554.0,
-        mat_light.clone(),
+        Some(mat_light.clone()),
     ));
     let flipped = FlipFace::new(light_plane.clone());
     scene_objects.add(flipped);
@@ -64,7 +78,7 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
     let box0 = Arc::new(AaBox::new(
         Point3::new(0.0, 0.0, 0.0),
         Point3::new(165.0, 330.0, 165.0),
-        mat_white.clone(),
+        Some(mat_white.clone()),
     ));
     let box0: Arc<dyn Hittable> = Arc::new(RotateY::new(box0.clone(), 15.0));
     let box0 = Translate::new(box0.clone(), Vec3::new(265.0, 0.0, 295.0));
@@ -75,7 +89,7 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
     scene_objects.add(Sphere::new(
         Point3::new(190.0, 90.0, 190.0),
         90.0,
-        mat_glass.clone(),
+        Some(mat_glass.clone()),
     ));
 
     let bvh = BvhNode::from_list(&scene_objects, 0.0, 1.0);
@@ -89,12 +103,12 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
         227.0,
         332.0,
         554.0,
-        mat_light.clone(),
+        Some(mat_light.clone()),
     ));
     lights.add(Sphere::new(
         Point3::new(190.0, 90.0, 190.0),
         90.0,
-        mat_light.clone(),
+        Some(mat_light.clone()),
     ));
     Scene::new(bvh.into(), Arc::new(lights), background, camera)
 }
