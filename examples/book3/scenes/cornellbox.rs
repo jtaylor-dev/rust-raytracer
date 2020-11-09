@@ -75,13 +75,13 @@ pub fn cornell_box(camera: Camera, background: Color) -> Scene {
 
     // boxes
     //let mat_metal: Arc<dyn Material> = Arc::new(Metal::new(Color::new(0.8, 0.85, 0.88), 0.0));
-    let box0 = Arc::new(AaBox::new(
+    let box0 = AaBox::new(
         Point3::new(0.0, 0.0, 0.0),
         Point3::new(165.0, 330.0, 165.0),
         Some(mat_white.clone()),
-    ));
-    let box0: Arc<dyn Hittable> = Arc::new(RotateY::new(box0.clone(), 15.0));
-    let box0 = Translate::new(box0.clone(), Vec3::new(265.0, 0.0, 295.0));
+    );
+    let box0 = RotateY::new(box0, 15.0);
+    let box0 = Translate::new(box0, Vec3::new(265.0, 0.0, 295.0));
     scene_objects.add(box0);
 
     // glass sphere

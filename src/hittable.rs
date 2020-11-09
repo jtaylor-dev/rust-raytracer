@@ -152,8 +152,11 @@ pub struct Translate {
 }
 
 impl Translate {
-    pub fn new(hittable: Arc<dyn Hittable>, offset: Vec3) -> Self {
-        Self { hittable, offset }
+    pub fn new(hittable: impl Hittable + 'static, offset: Vec3) -> Self {
+        Self {
+            hittable: Arc::new(hittable),
+            offset,
+        }
     }
 }
 
@@ -191,7 +194,7 @@ pub struct RotateY {
 }
 
 impl RotateY {
-    pub fn new(hittable: Arc<dyn Hittable>, angle: f64) -> Self {
+    pub fn new(hittable: impl Hittable + 'static, angle: f64) -> Self {
         let radians = angle.to_radians();
         let sin_theta = radians.sin();
         let cos_theta = radians.cos();
@@ -222,7 +225,7 @@ impl RotateY {
         }
 
         Self {
-            hittable,
+            hittable: Arc::new(hittable),
             cos_theta,
             sin_theta,
             aabb: Some(Aabb::new(min, max)),
